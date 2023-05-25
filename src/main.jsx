@@ -4,15 +4,18 @@ import {
   createBrowserRouter,
   RouterProvider,
   Outlet,
-  Link
+  Link,
+  useLoaderData,
+  Form
 } from 'react-router-dom'
 import '../index.css'
 import ErrorPage from '../error-page'
 const root = document.getElementById('root')
 
 import Contact from './routes/contact'
-
+import { getListArray, createItem } from '../mock/data'
 const Index = () => {
+  const { list } = useLoaderData()
   return (
     <>
       <div id='sidebar'>
@@ -29,21 +32,26 @@ const Index = () => {
             <div id='search-spinner' aria-hidden hidden={true} />
             <div className='sr-only' aria-live='polite'></div>
           </form>
-          <form method='post'>
-            <button type='submit'>New</button>
-          </form>
+          <Form method='post'>
+            <button type='submit'>+</button>
+          </Form>
         </div>
         <nav>
-          <ul>
-            <li>
-              <Link to={`/contacts/1`}>link a</Link>
-            </li>
-            <li>
-              <Link to={`/contacts/2`}>link b</Link>
-
-              {/* <a href={`/contacts/2`}>Your Friend</a> */}
-            </li>
-          </ul>
+          {list.length ? (
+            <ul>
+              {list.map((it) => {
+                return (
+                  <li key={it.id}>
+                    <Link to={`/contacts/${it.id}`}>{it.id}</Link>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : (
+            <p>
+              <i>no-data</i>
+            </p>
+          )}
         </nav>
       </div>
       <div id='detail'>
@@ -53,11 +61,22 @@ const Index = () => {
   )
 }
 
+export async function loader() {
+  const list = await getListArray()
+  return { list }
+}
+export async function action() {
+  const item = await createItem()
+  return { item }
+}
+
 const r = createBrowserRouter([
   {
     path: '/',
     element: <Index />,
     errorElement: <ErrorPage />,
+    loader: loader,
+    action: action,
     children: [
       {
         path: 'contacts/:id',
